@@ -3,29 +3,81 @@ import json
 import os
 import random
 import requests
-from datetime import datetime
+import base64
+from datetime import datetime, timedelta
+import time
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 # Flag to determine if we're using real API or simulation
-# Should be set to True when ZOOM_API_KEY and ZOOM_API_SECRET are available
+# Should be set to True when ZOOM_CLIENT_ID and ZOOM_CLIENT_SECRET are available
 USE_REAL_API = False
 
 # Get Zoom API credentials from environment variables
-ZOOM_API_KEY = os.environ.get('ZOOM_API_KEY')
-ZOOM_API_SECRET = os.environ.get('ZOOM_API_SECRET')
-ZOOM_JWT_TOKEN = os.environ.get('ZOOM_JWT_TOKEN')
+ZOOM_CLIENT_ID = os.environ.get('ZOOM_CLIENT_ID')
+ZOOM_CLIENT_SECRET = os.environ.get('ZOOM_CLIENT_SECRET')
 
 # If API credentials are available, we'll use the real API
-if ZOOM_API_KEY and ZOOM_API_SECRET and ZOOM_JWT_TOKEN:
+if ZOOM_CLIENT_ID and ZOOM_CLIENT_SECRET:
     USE_REAL_API = True
-    logger.info("Using real Zoom API with provided credentials")
+    logger.info("Using real Zoom API with provided OAuth credentials")
 else:
     logger.info("No Zoom API credentials found, using simulation mode")
 
 # Base URL for Zoom API
 ZOOM_API_BASE_URL = "https://api.zoom.us/v2"
+ZOOM_OAUTH_TOKEN_URL = "https://zoom.us/oauth/token"
+
+# OAuth token cache
+oauth_token = None
+token_expires_at = 0
+
+def get_oauth_token():
+    """
+    Get an OAuth access token for Zoom API requests.
+    Uses the client credentials flow with Server-to-Server OAuth.
+    
+    Returns:
+        str: The access token if successful, None if failed
+    """
+    global oauth_token, token_expires_at
+    
+    # Check if we have a valid token cached
+    if oauth_token and token_expires_at > time.time():
+        return oauth_token
+        
+    try:
+        # Create the request for Server-to-Server OAuth
+        # https://developers.zoom.us/docs/internal-apps/s2s-oauth/
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        data = {
+            "grant_type": "account_credentials",
+            "account_id": os.environ.get('ZOOM_ACCOUNT_ID', ''),  # Account ID is required for S2S OAuth
+            "client_id": ZOOM_CLIENT_ID,
+            "client_secret": ZOOM_CLIENT_SECRET
+        }
+        
+        logger.debug(f"Requesting OAuth token with client ID: {ZOOM_CLIENT_ID}")
+        response = requests.post(ZOOM_OAUTH_TOKEN_URL, headers=headers, data=data)
+        
+        if response.status_code == 200:
+            token_data = response.json()
+            oauth_token = token_data["access_token"]
+            # Set expiry time with a small buffer (5 minutes)
+            token_expires_at = time.time() + token_data["expires_in"] - 300
+            logger.info("Successfully obtained Zoom OAuth token")
+            return oauth_token
+        else:
+            logger.error(f"Failed to get OAuth token. Status: {response.status_code}, Error: {response.text}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Error getting OAuth token: {str(e)}")
+        return None
 
 class ZoomAPIClient:
     """
@@ -33,9 +85,8 @@ class ZoomAPIClient:
     This implementation falls back to simulation when credentials are not available.
     """
     def __init__(self):
-        self.api_key = ZOOM_API_KEY
-        self.api_secret = ZOOM_API_SECRET
-        self.jwt_token = ZOOM_JWT_TOKEN
+        self.client_id = ZOOM_CLIENT_ID
+        self.client_secret = ZOOM_CLIENT_SECRET
         self.use_real_api = USE_REAL_API
         
         # If we're not using the real API, initialize the simulator
@@ -46,9 +97,17 @@ class ZoomAPIClient:
         """Get the headers required for Zoom API requests"""
         if not self.use_real_api:
             return {}
+        
+        # Get an access token using OAuth
+        access_token = get_oauth_token()
+        if not access_token:
+            # Fall back to simulation if we can't get a token
+            self.use_real_api = False
+            self.simulator = ZoomMeetingSimulator()
+            return {}
             
         return {
-            "Authorization": f"Bearer {self.jwt_token}",
+            "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
     
@@ -249,9 +308,94 @@ class ZoomMeetingSimulator:
 # Create a singleton instance of the simulator
 zoom_simulator = ZoomMeetingSimulator()
 
-def post_poll_to_zoom(poll_data):
+def post_poll_to_zoom(poll_data, meeting_id=None):
     """
-    Simulate posting a poll to a Zoom meeting.
+    Post a poll to a Zoom meeting.
+    If using real API, will create a poll in the specified meeting.
+    Otherwise falls back to simulation.
+    
+    Args:
+        poll_data (dict): The poll data including question and options
+        meeting_id (str, optional): The meeting ID to post the poll to
+        
+    Returns:
+        dict: Status of the operation
+    """
+    # Check if we can use the real API
+    if USE_REAL_API and ZOOM_CLIENT_ID and ZOOM_CLIENT_SECRET:
+        logger.info(f"Posting poll to Zoom meeting {meeting_id} via real API")
+        
+        # Get an access token
+        access_token = get_oauth_token()
+        if not access_token:
+            logger.warning("Failed to get access token, falling back to simulation")
+            # Fall back to simulation if we can't get a token
+            return _simulate_post_poll_to_zoom(poll_data)
+            
+        try:
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Format payload for Zoom API
+            payload = {
+                "title": "Automated Poll",
+                "questions": [
+                    {
+                        "name": poll_data["question"],
+                        "type": "single",  # Single choice question
+                        "answers": poll_data["options"]
+                    }
+                ]
+            }
+            
+            # Create the poll
+            # Note: In a real implementation you'd need to have the actual meeting ID
+            if not meeting_id:
+                meeting_id = "81234567890"  # Default for testing
+                
+            url = f"{ZOOM_API_BASE_URL}/meetings/{meeting_id}/polls"
+            response = requests.post(url, headers=headers, json=payload)
+            
+            if response.status_code == 201:  # 201 Created
+                poll_id = response.json().get("id")
+                logger.info(f"Successfully created poll with ID: {poll_id}")
+                
+                # In a production environment, you'd wait for participants to vote
+                # and then end the poll via another API call
+                # For this demo, we'll simulate that part
+                
+                # Return success response
+                return {
+                    "success": True,
+                    "message": "Poll created in Zoom meeting via API",
+                    "poll_id": poll_id,
+                    # Simulated results for now
+                    "results": {
+                        "success": True,
+                        "poll_id": poll_id,
+                        "question": poll_data["question"],
+                        "total_responses": 0,
+                        "results": {option: 0 for option in poll_data["options"]}
+                    }
+                }
+            else:
+                logger.error(f"Failed to create poll: {response.text}")
+                # Fall back to simulation
+                return _simulate_post_poll_to_zoom(poll_data)
+                
+        except Exception as e:
+            logger.error(f"Error creating poll: {str(e)}")
+            # Fall back to simulation
+            return _simulate_post_poll_to_zoom(poll_data)
+    else:
+        # Use simulation
+        return _simulate_post_poll_to_zoom(poll_data)
+
+def _simulate_post_poll_to_zoom(poll_data):
+    """
+    Simulate posting a poll to a Zoom meeting (internal function).
     
     Args:
         poll_data (dict): The poll data including question and options
@@ -285,7 +429,7 @@ def post_poll_to_zoom(poll_data):
             
             return {
                 "success": True,
-                "message": "Poll posted, launched, and completed in Zoom meeting",
+                "message": "Poll posted, launched, and completed in Zoom meeting (simulated)",
                 "poll_id": created_poll["id"],
                 "results": results
             }
@@ -296,11 +440,51 @@ def post_poll_to_zoom(poll_data):
         "poll_id": created_poll["id"] if "created_poll" in locals() else None
     }
 
-def get_zoom_meeting_info():
+def get_zoom_meeting_info(meeting_id=None):
     """
-    Get information about the current Zoom meeting.
+    Get information about a Zoom meeting.
+    If using the real API, will fetch the meeting information.
+    Otherwise falls back to simulation.
     
+    Args:
+        meeting_id (str, optional): The meeting ID to get info for
+        
     Returns:
         dict: Meeting information
     """
-    return zoom_simulator.get_meeting_info()
+    # Check if we can use the real API
+    if USE_REAL_API and ZOOM_CLIENT_ID and ZOOM_CLIENT_SECRET and meeting_id:
+        logger.info(f"Getting info for Zoom meeting {meeting_id} via real API")
+        
+        # Get an access token
+        access_token = get_oauth_token()
+        if not access_token:
+            logger.warning("Failed to get access token, falling back to simulation")
+            # Fall back to simulation if we can't get a token
+            return zoom_simulator.get_meeting_info()
+            
+        try:
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            url = f"{ZOOM_API_BASE_URL}/meetings/{meeting_id}"
+            response = requests.get(url, headers=headers)
+            
+            if response.status_code == 200:
+                meeting_data = response.json()
+                logger.info(f"Successfully retrieved meeting info for {meeting_id}")
+                return meeting_data
+            else:
+                logger.error(f"Failed to get meeting info: {response.text}")
+                # Fall back to simulation
+                return zoom_simulator.get_meeting_info()
+                
+        except Exception as e:
+            logger.error(f"Error getting meeting info: {str(e)}")
+            # Fall back to simulation
+            return zoom_simulator.get_meeting_info()
+    else:
+        # Use simulation
+        return zoom_simulator.get_meeting_info()
