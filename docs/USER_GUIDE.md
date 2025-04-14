@@ -28,7 +28,7 @@ The Real-Time Zoom Poll Automation system automatically generates and presents p
 1. **Clone or Download the Repository**
 
    ```
-   git clone https://github.com/yourusername/zoom-poll-automation.git
+   git clone [https://github.com/yourusername/zoom-poll-automation.git](https://github.com/Srinivas26k/ZoomPollTracker.git)
    ```
    
    Or download and extract the ZIP file from the repository.
