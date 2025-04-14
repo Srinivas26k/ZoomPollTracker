@@ -10,7 +10,8 @@ from flask_socketio import SocketIO
 
 # Import our custom modules
 from src.transcript_simulator import generate_transcript
-from src.poll_generator import generate_poll_from_transcript
+from src.transcription import transcribe_audio, set_transcription_mode, get_available_modes
+from src.ai_models import generate_poll, set_poll_model, get_current_model_info, get_available_poll_models
 from src.zoom_integration import post_poll_to_zoom, get_zoom_meeting_info, ZoomAPIClient
 
 # Set up logging
@@ -36,6 +37,10 @@ current_transcript = None
 last_poll_time = None
 poll_interval = 15 * 60  # Default 15 minutes in seconds
 connected_meeting = None
+
+# Check for available AI models
+available_ai_models = get_available_poll_models()
+available_transcription = get_available_modes()
 
 # Utility functions for the application
 def get_recent_meetings():
@@ -107,7 +112,7 @@ def main_page():
     if current_poll is None:
         # Generate initial data
         current_transcript = generate_transcript()
-        current_poll = generate_poll_from_transcript(current_transcript)
+        current_poll = generate_poll(current_transcript)
         last_poll_time = datetime.now()
     
     # Calculate time until next poll
@@ -118,6 +123,9 @@ def main_page():
         if time_until_next_poll < 0:
             time_until_next_poll = 0
     
+    # Get model information for the UI
+    model_info = get_current_model_info()
+    
     return render_template('index.html', 
                            poll=current_poll, 
                            transcript=current_transcript,
@@ -125,7 +133,8 @@ def main_page():
                            time_until_next=time_until_next_poll,
                            poll_interval=poll_interval,
                            meeting=connected_meeting,
-                           simulation_mode=session.get('simulation_mode', False))
+                           simulation_mode=session.get('simulation_mode', False),
+                           model_info=model_info)
 
 @app.route('/connect')
 def connect():
@@ -243,7 +252,7 @@ def api_generate_poll():
     
     # Generate new data
     current_transcript = generate_transcript()
-    current_poll = generate_poll_from_transcript(current_transcript)
+    current_poll = generate_poll(current_transcript)
     last_poll_time = datetime.now()
     
     # Emit the new poll to all connected clients
@@ -253,14 +262,15 @@ def api_generate_poll():
         'timestamp': last_poll_time.strftime('%Y-%m-%d %H:%M:%S')
     })
     
-    # Simulate posting to Zoom
+    # Post to Zoom (real or simulated)
     post_poll_to_zoom(current_poll)
     
     return jsonify({
         'success': True, 
         'poll': current_poll, 
         'transcript': current_transcript,
-        'timestamp': last_poll_time.strftime('%Y-%m-%d %H:%M:%S')
+        'timestamp': last_poll_time.strftime('%Y-%m-%d %H:%M:%S'),
+        'model_info': get_current_model_info()
     })
 
 @app.route('/api/get-poll')
@@ -298,8 +308,12 @@ def poll_generation_task():
             logger.debug("Generating new poll...")
             
             # Generate new transcript and poll
+            # In a real implementation, this would use transcribe_audio instead
+            # of generate_transcript for real meeting audio
             current_transcript = generate_transcript()
-            current_poll = generate_poll_from_transcript(current_transcript)
+            
+            # Use the AI models module to generate a poll
+            current_poll = generate_poll(current_transcript)
             last_poll_time = now
             
             # Emit the new poll to all connected clients
@@ -309,13 +323,72 @@ def poll_generation_task():
                 'timestamp': last_poll_time.strftime('%Y-%m-%d %H:%M:%S')
             })
             
-            # Simulate posting to Zoom
+            # Post to Zoom (real or simulated)
             post_poll_to_zoom(current_poll)
             
             logger.debug(f"New poll generated: {current_poll}")
         
         # Sleep for 1 second before next check
         time.sleep(1)
+
+# API routes for AI model selection
+@app.route('/api/models', methods=['GET'])
+def get_models():
+    """Get information about available AI models"""
+    return jsonify({
+        'success': True,
+        'current_model': get_current_model_info(),
+        'available_models': get_available_poll_models(),
+        'available_transcription': get_available_modes()
+    })
+
+@app.route('/api/models/poll', methods=['POST'])
+def set_model():
+    """Set the AI model to use for poll generation"""
+    data = request.get_json()
+    if data and 'model' in data:
+        model_key = data['model']
+        success = set_poll_model(model_key)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f"Poll generation model set to {model_key}",
+                'current_model': get_current_model_info()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f"Invalid model: {model_key}"
+            }), 400
+    
+    return jsonify({
+        'success': False,
+        'message': "No model specified"
+    }), 400
+
+@app.route('/api/models/transcription', methods=['POST'])
+def set_transcription():
+    """Set the transcription mode to use"""
+    data = request.get_json()
+    if data and 'mode' in data:
+        mode = data['mode']
+        success = set_transcription_mode(mode)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f"Transcription mode set to {mode}",
+                'available_modes': get_available_modes()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f"Invalid transcription mode: {mode}"
+            }), 400
+    
+    return jsonify({
+        'success': False,
+        'message': "No mode specified"
+    }), 400
 
 # Start the background task when the app starts
 background_thread = None

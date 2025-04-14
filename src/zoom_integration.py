@@ -36,7 +36,7 @@ token_expires_at = 0
 def get_oauth_token():
     """
     Get an OAuth access token for Zoom API requests.
-    Uses the client credentials flow with Server-to-Server OAuth.
+    Uses the client credentials grant type which is standard for Zoom API.
     
     Returns:
         str: The access token if successful, None if failed
@@ -48,17 +48,20 @@ def get_oauth_token():
         return oauth_token
         
     try:
-        # Create the request for Server-to-Server OAuth
-        # https://developers.zoom.us/docs/internal-apps/s2s-oauth/
+        # Create the request using client_credentials grant type
+        # https://developers.zoom.us/docs/integrations/create/oauth-with-zoom/oauth-playground/
+        
+        # Encode client ID and secret for Authorization header
+        auth_str = f"{ZOOM_CLIENT_ID}:{ZOOM_CLIENT_SECRET}"
+        encoded_auth = base64.b64encode(auth_str.encode()).decode()
+        
         headers = {
+            "Authorization": f"Basic {encoded_auth}",
             "Content-Type": "application/x-www-form-urlencoded"
         }
         
         data = {
-            "grant_type": "account_credentials",
-            "account_id": os.environ.get('ZOOM_ACCOUNT_ID', ''),  # Account ID is required for S2S OAuth
-            "client_id": ZOOM_CLIENT_ID,
-            "client_secret": ZOOM_CLIENT_SECRET
+            "grant_type": "client_credentials"
         }
         
         logger.debug(f"Requesting OAuth token with client ID: {ZOOM_CLIENT_ID}")
