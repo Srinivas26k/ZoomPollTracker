@@ -1,0 +1,246 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <!-- Meeting Connection Panel -->
+    <div class="col-md-10">
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='img/meeting-banner.svg') }}" alt="Zoom Poll Automation" class="img-fluid rounded shadow-sm" style="max-width: 100%;">
+        </div>
+        
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white d-flex align-items-center">
+                <i class="fas fa-link me-2"></i>
+                <h3 class="h5 mb-0">Connect to a Zoom Meeting</h3>
+            </div>
+            
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <form id="connect-form" action="{{ url_for('connect_to_meeting') }}" method="post">
+                            <div class="mb-3">
+                                <label for="meeting-id" class="form-label fw-medium">Meeting ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-video"></i></span>
+                                    <input type="text" class="form-control" id="meeting-id" name="meeting_id" 
+                                           placeholder="Enter meeting ID (e.g., 812 345 6789)" required>
+                                </div>
+                                <div class="form-text">Enter the Zoom Meeting ID you want to connect to</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="meeting-passcode" class="form-label fw-medium">Meeting Passcode</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="meeting-passcode" name="meeting_passcode" 
+                                           placeholder="Optional">
+                                </div>
+                                <div class="form-text">If the meeting requires a passcode, enter it here</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="poll-interval" class="form-label fw-medium">Poll Generation Interval</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                    <input type="number" class="form-control" id="poll-interval" name="poll_interval" 
+                                           value="900" min="60" max="3600" required>
+                                    <span class="input-group-text">seconds</span>
+                                </div>
+                                <div class="form-text">How often should new polls be generated (recommended: 900 seconds / 15 minutes)</div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-plug me-2"></i>
+                                    Connect and Start Automation
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-6 mt-4 mt-md-0">
+                        <div class="h-100 d-flex flex-column">
+                            <h4 class="h6 fw-bold mb-3">Available Meetings</h4>
+                            
+                            <div class="list-group mb-3 meeting-list flex-grow-1" style="max-height: 200px; overflow-y: auto;">
+                                {% if recent_meetings %}
+                                    {% for meeting in recent_meetings %}
+                                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center meeting-item"
+                                           data-meeting-id="{{ meeting.id }}">
+                                            <div>
+                                                <div class="fw-medium">{{ meeting.topic }}</div>
+                                                <div class="small text-muted">ID: {{ meeting.id }}</div>
+                                            </div>
+                                            <span class="badge bg-{{ 'success' if meeting.status == 'in_progress' else 'secondary' }} rounded-pill">
+                                                {{ 'Active' if meeting.status == 'in_progress' else 'Scheduled' }}
+                                            </span>
+                                        </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                        <p>No active meetings found. Enter a meeting ID manually or start a Zoom meeting.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-center">
+                                <button id="refresh-meetings" class="btn btn-outline-primary">
+                                    <i class="fas fa-sync-alt me-2"></i>
+                                    Refresh Meeting List
+                                </button>
+                                
+                                <a href="https://zoom.us/start" target="_blank" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    Start a Zoom Meeting
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Requirements -->
+        <div class="card border-0 shadow mt-4">
+            <div class="card-header bg-secondary text-white d-flex align-items-center">
+                <i class="fas fa-info-circle me-2"></i>
+                <h3 class="h5 mb-0">System Requirements</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
+                            <h4 class="h6 fw-bold">Host Privileges</h4>
+                            <p class="small">You must be the host or co-host of the meeting to generate polls</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
+                            <h4 class="h6 fw-bold">Zoom Pro Account</h4>
+                            <p class="small">A Zoom Pro, Business, or Enterprise account is required</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <i class="fas fa-microphone-alt fa-3x text-primary mb-3"></i>
+                            <h4 class="h6 fw-bold">Active Discussion</h4>
+                            <p class="small">Meaningful conversation is needed for optimal poll generation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simulation Modal -->
+<div class="modal fade" id="simulationModal" tabindex="-1" aria-labelledby="simulationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="simulationModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Simulation Mode Activated
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-desktop fa-3x text-primary"></i>
+                </div>
+                <p>
+                    Since no Zoom API credentials were detected, the system will operate in <strong>simulation mode</strong>.
+                    This allows you to see how the application would work with a real Zoom meeting.
+                </p>
+                <p>
+                    In simulation mode, all Zoom API interactions are simulated and no actual Zoom meeting connection
+                    is established. This is perfect for demonstrations and testing.
+                </p>
+                <p class="mb-0">
+                    To connect to a real Zoom meeting, you would need to provide API credentials.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</a>
+                <form action="{{ url_for('simulate_meeting') }}" method="post" class="d-inline">
+                    <input type="hidden" name="simulation_enabled" value="true">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-play me-2"></i>
+                        Continue with Simulation
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show the simulation modal when page loads
+        setTimeout(function() {
+            const simulationModal = new bootstrap.Modal(document.getElementById('simulationModal'));
+            simulationModal.show();
+        }, 500);
+        
+        // Handle meeting item clicks
+        document.querySelectorAll('.meeting-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const meetingId = this.getAttribute('data-meeting-id');
+                document.getElementById('meeting-id').value = meetingId;
+                document.querySelector('.list-group .active')?.classList.remove('active');
+                this.classList.add('active');
+            });
+        });
+        
+        // Handle form submission
+        document.getElementById('connect-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // In a real implementation, we would validate and connect to the meeting
+            // For now, show the simulation modal
+            const simulationModal = new bootstrap.Modal(document.getElementById('simulationModal'));
+            simulationModal.show();
+        });
+        
+        // Handle refresh button
+        document.getElementById('refresh-meetings').addEventListener('click', function() {
+            // In a real implementation, we would refresh the meeting list
+            // For now, show a toast notification
+            const toastContent = `
+                <div class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Refreshing meeting list... No new meetings found.
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            const toastContainer = document.createElement('div');
+            toastContainer.classList.add('position-fixed', 'bottom-0', 'end-0', 'p-3');
+            toastContainer.style.zIndex = '11';
+            toastContainer.innerHTML = toastContent;
+            document.body.appendChild(toastContainer);
+            
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'), {
+                autohide: true,
+                delay: 3000
+            });
+            toast.show();
+            
+            // Remove the toast element after it's hidden
+            toastContainer.querySelector('.toast').addEventListener('hidden.bs.toast', function() {
+                toastContainer.remove();
+            });
+        });
+    });
+</script>
+{% endblock %}

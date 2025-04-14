@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200" viewBox="0 0 800 200">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0E72ED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0956B5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="200" rx="12" ry="12" fill="url(#grad1)" />
+  <g fill="#FFFFFF" transform="translate(40, 60)">
+    <path d="M0,0 L40,0 L40,40 L0,40 Z" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    <path d="M45,0 L85,0 L85,40 L45,40 Z" fill="none" stroke="#FFFFFF" stroke-width="2" />
+    <path d="M0,45 L40,45 L40,85 L0,85 Z" fill="none" stroke="#FFFFFF" stroke-width="2" />
+    <path d="M45,45 L85,45 L85,85 L45,85 Z" fill="none" stroke="#FFFFFF" stroke-width="2" />
+    <text x="120" y="50" font-family="Arial" font-size="28" font-weight="bold">Zoom Poll Automation</text>
+    <text x="120" y="80" font-family="Arial" font-size="16">Connect to your meeting and generate polls automatically</text>
+  </g>
+</svg>
