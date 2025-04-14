@@ -1,0 +1,130 @@
+
+
+
+
+**Project Title:**  
+_Real-Time Zoom Poll Automation_
+
+**Project Overview:**  
+You are to build an automated poll generator for live Zoom meetings. The project simulates a real-time Zoom meeting automation tool that does the following:
+
+1. **Transcript Capture (Simulation):** Every 15 minutes, the system captures the last 10 minutes of meeting transcript data. (For now, use a dummy transcript as a placeholder.)
+2. **Poll Generation:** The captured transcript is processed by a local AI model (Ollama running Llama 3.2) to generate a poll—specifically, a question and four answer options formatted as JSON.
+3. **Poll Posting:** The generated poll is then automatically posted into the live Zoom meeting UI (using the Zoom SDK). For testing purposes, you can simulate posting by outputting the poll to a custom UI component in your application.
+4. **Custom UI & Automation:** Use the Zoom SDK to create a custom UI that can display the poll and simulate the meeting environment. The process runs with no human intervention.
+
+The final project must include:
+- A **README.md** with installation, configuration, and run instructions.
+- Clear **documentation** in markdown (e.g., in a `docs/` folder) explaining the project’s features, structure, and how to extend or modify it.
+- All necessary configuration files (for example, a `.replit` file for Replit projects) and source code files.
+
+**Constraints:**  
+- The entire process should be free of charge by using free or open-source components.
+- Use your local instance of Ollama (Llama 3.2) for AI-based poll generation.
+- Simulate the Zoom meeting using a dummy transcript and custom UI for demonstration.
+- The solution is for testing purposes, so it should run locally on Replit with simple simulation flows.
+
+---
+
+### Project Structure & Deliverables
+
+Your Replit project should be organized as follows:
+
+```
+/Real-Time-Zoom-Poll-Automation
+├── README.md                # Overview, installation and run instructions
+├── .replit                 # Replit configuration file for quick startup
+├── package.json or requirements.txt   # Manage dependencies (choose based on language)
+├── src/
+│   ├── index.js or main.py           # Entry point; contains the main automation loop
+│   ├── zoom_integration.js or zoom_integration.py  
+│   │    - Contains code to simulate Zoom SDK functionality including custom UI to display polls
+│   ├── poll_generator.js or poll_generator.py  
+│   │    - Code to simulate interaction with the local Llama 3.2 instance via Ollama; converts transcript into a poll
+│   └── transcript_simulator.js or transcript_simulator.py  
+│         - Module to simulate capturing a dummy transcript (last 10 minutes text)
+└── docs/
+    └── instructions.md     # Additional detailed documentation and explanation for developers
+```
+
+---
+
+### Detailed Requirements and Instructions
+
+1. **README.md:**  
+   - **Introduction:** Brief description of the project.
+   - **Features:** Outline the automation steps (transcript capture, AI poll generation, poll posting).
+   - **Setup Instructions:** How to install dependencies (Node.js packages or Python libraries), configure the local Llama 3.2 model via Ollama, and set up the Zoom SDK (or a simulated module).
+   - **Run Instructions:** How to start the automation loop locally.
+   - **Contribution Guidelines:** Brief notes for other developers who might extend this project later.
+
+2. **Documentation (docs/instructions.md):**  
+   - Explain the technical architecture.
+   - Provide instructions for integrating with the Zoom SDK. (For now, you can include links or references to the [Zoom SDK documentation](https://marketplace.zoom.us/docs/sdk/native-sdks/introduction/).)
+   - Detail how the transcript simulation works and how the poll generation is processed.
+   - Include troubleshooting tips and potential future improvements (like real transcript capture and full UI integration).
+
+3. **Code Requirements:**  
+   - **Transcript Simulator:** Create a function that returns a string simulating 10 minutes of transcript (e.g., "This is a sample transcript text...").
+   - **Poll Generator:** Write a function that accepts the transcript text as input, sends it through your local Llama 3.2 model (simulated as a function call for testing), and returns a poll JSON:
+     ```json
+     {
+       "question": "Your poll question here?",
+       "options": ["Option 1", "Option 2", "Option 3", "Option 4"]
+     }
+     ```
+   - **Zoom Integration Simulation:** Create a module that simulates posting the poll by outputting the generated poll to a simulated UI component. For instance, print the poll data to the console or render it in a minimal web interface hosted by Replit’s web server.
+   - **Automation Loop:** Code that every 15 minutes (simulate with shorter intervals for testing if needed) triggers the simulation of transcript capture, poll generation, and poll posting.
+
+4. **Environment & Deployment:**  
+   - Ensure your project runs on Replit with minimal setup.
+   - Use environment variables (or a configuration file) to set any necessary keys or options. (For testing, these can be dummy values.)
+   - Include instructions for installing and running everything locally.
+
+5. **Testing & Final Submission:**  
+   - Run your project locally in Replit.
+   - Verify that the automation loop runs and outputs simulated polls every set interval.
+   - Ensure the code is documented and the README.md plus docs/instructions.md clearly explain how each component works.
+
+---
+
+### Sample README.md Content
+
+Below is an example snippet you can include in your **README.md**:
+
+```markdown
+# Real-Time Zoom Poll Automation
+
+## Overview
+This project is a proof-of-concept for automating poll generation during a live Zoom meeting. It simulates capturing a 10-minute transcript, generating a poll using a local instance of Ollama's Llama 3.2, and posting the poll into a simulated Zoom meeting UI every 15 minutes.
+
+## Features
+- **Transcript Capture Simulation:** Dummy transcript generator.
+- **AI-Powered Poll Generation:** Uses a local Llama 3.2 model (via Ollama) to create poll questions and options.
+- **Automated Poll Posting:** Simulated Zoom meeting integration with custom UI.
+- **Completely Free:** All components are free/open-source for local testing.
+
+## Setup Instructions
+1. Clone the repository.
+2. Install dependencies:
+   - For Node.js: Run `npm install`
+   - For Python: Run `pip install -r requirements.txt`
+3. Configure your local instance of Ollama to work with Llama 3.2.
+4. Run the project:
+   - For Node.js: Run `node src/index.js`
+   - For Python: Run `python src/main.py`
+
+## Project Structure
+- **src/**: Contains the source code for transcript simulation, poll generation, and Zoom integration simulation.
+- **docs/**: Additional documentation and technical instructions.
+- **.replit**: Configuration file for Replit.
+- **README.md**: This file.
+
+## Future Improvements
+- Real integration with Zoom's live meeting SDK.
+- Dynamic transcript capture from live audio.
+- Enhanced UI for better interactive experience.
+```
+
+---
+
