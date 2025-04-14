@@ -1,0 +1,211 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- Control Panel -->
+    <div class="col-md-4">
+        <div class="control-panel">
+            <h2 class="h4 mb-3">Control Panel</h2>
+            
+            <!-- Next Poll Information -->
+            <div class="countdown-container mb-4">
+                <h3 class="h6 mb-2">Next Poll In:</h3>
+                <div class="countdown" id="countdown" data-seconds="{{ time_until_next }}">
+                    {% if time_until_next %}
+                        {{ (time_until_next // 60)|int }}:{{ '%02d' % (time_until_next % 60)|int }}
+                    {% else %}
+                        Loading...
+                    {% endif %}
+                </div>
+                <div id="next-poll-time" data-seconds="{{ time_until_next }}" data-interval="{{ poll_interval }}" class="small text-muted mt-2">
+                    Interval: {{ poll_interval }} seconds
+                </div>
+            </div>
+            
+            <!-- Manual Controls -->
+            <div class="mb-4">
+                <h3 class="h6 mb-3">Manual Controls</h3>
+                <button id="generate-poll-btn" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-plus-circle me-2"></i> Generate Poll Now
+                </button>
+                
+                <div class="form-group">
+                    <label for="interval-input" class="form-label">Poll Interval (seconds)</label>
+                    <div class="input-group mb-2">
+                        <input type="number" class="form-control" id="interval-input" value="{{ poll_interval }}" min="1">
+                        <button class="btn btn-outline-primary" id="update-interval-btn">Update</button>
+                    </div>
+                    <div class="form-text">
+                        Default: 900 seconds (15 minutes)
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Status -->
+            <div>
+                <h3 class="h6 mb-3">System Status</h3>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Transcript Simulator
+                        <span class="badge bg-success">Active</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Poll Generator
+                        <span class="badge bg-success">Active</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Zoom Integration
+                        <span class="badge bg-success">Simulated</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Zoom Meeting Simulation -->
+    <div class="col-md-8">
+        <div class="zoom-ui mb-4">
+            <div class="zoom-header">
+                <div>
+                    <h2 class="h5 mb-0">Sales Team Weekly Check-in</h2>
+                    <div class="small text-muted">Meeting ID: 123-456-789</div>
+                </div>
+                <div class="zoom-controls">
+                    <div class="zoom-control-button">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <div class="zoom-control-button">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="zoom-control-button">
+                        <i class="fas fa-share-square"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="zoom-participants">
+                <h3 class="h6 mb-2">Participants (4)</h3>
+                <div class="participant">
+                    <div class="participant-avatar">H</div>
+                    <div>Host (You)</div>
+                </div>
+                <div class="participant">
+                    <div class="participant-avatar">P1</div>
+                    <div>Participant 1</div>
+                </div>
+                <div class="participant">
+                    <div class="participant-avatar">P2</div>
+                    <div>Participant 2</div>
+                </div>
+                <div class="participant">
+                    <div class="participant-avatar">P3</div>
+                    <div>Participant 3</div>
+                </div>
+            </div>
+            
+            <!-- Poll Display -->
+            <div id="poll-container" class="poll-box">
+                <h3 class="h5 mb-3">
+                    <i class="fas fa-poll me-2"></i>
+                    Active Poll
+                </h3>
+                
+                <div class="poll-content">
+                    <h4 id="poll-question" class="h6 mb-3">
+                        {% if poll %}
+                            {{ poll.question }}
+                        {% else %}
+                            Waiting for the first poll to be generated...
+                        {% endif %}
+                    </h4>
+                    
+                    <div id="poll-options" class="mb-3">
+                        {% if poll and poll.options %}
+                            {% for option in poll.options %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pollOption" id="option{{ loop.index0 }}" value="{{ option }}">
+                                    <label class="form-check-label" for="option{{ loop.index0 }}">
+                                        {{ option }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <button class="btn btn-primary poll-submit-btn">Submit Vote</button>
+                    
+                    <div class="small text-muted mt-3">
+                        Poll generated at: <span id="poll-timestamp">
+                            {% if last_poll_time %}
+                                {{ last_poll_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transcript Display -->
+            <div>
+                <h3 class="h5 mb-3">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Meeting Transcript (Last 10 Minutes)
+                </h3>
+                <div class="transcript-container" id="transcript">
+                    {% if transcript %}
+                        {{ transcript }}
+                    {% else %}
+                        Waiting for transcript data...
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="h5 mb-0">How This System Works</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-file-alt fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="h6 text-center">1. Transcript Capture</h4>
+                        <p class="small text-center">
+                            The system captures the last 10 minutes of meeting transcript data every 15 minutes.
+                            (Simulated in this demo)
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-brain fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="h6 text-center">2. AI Poll Generation</h4>
+                        <p class="small text-center">
+                            The captured transcript is analyzed to generate a contextually relevant poll with four options.
+                            (Simulated Ollama/Llama 3.2 integration)
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-poll-h fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="h6 text-center">3. Poll Posting</h4>
+                        <p class="small text-center">
+                            The generated poll is automatically posted to the Zoom meeting.
+                            (Simulated in this demo UI)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
