@@ -123,8 +123,23 @@
     <!-- Socket.IO -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     
+    <!-- Local Storage Manager -->
+    <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
+    
     <!-- Custom JavaScript -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <!-- Simulation mode indicator (shown only in simulation mode) -->
+    {% if simulation_mode %}
+    <div class="simulation-badge">
+        <i class="fas fa-vial"></i> Simulation Mode
+    </div>
+    {% endif %}
+    
+    <!-- Local storage indicator -->
+    <div class="storage-info">
+        <i class="fas fa-database"></i> Using Local Storage
+    </div>
     
     <!-- Additional scripts -->
     {% block scripts %}{% endblock %}
