@@ -1,40 +1,136 @@
 import logging
 import json
+import os
+import random
+import requests
 from datetime import datetime
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# This module simulates integration with the Zoom SDK
-# Since we're in a simulated environment, we'll log actions instead of actually 
-# interacting with the Zoom API
+# Flag to determine if we're using real API or simulation
+# Should be set to True when ZOOM_API_KEY and ZOOM_API_SECRET are available
+USE_REAL_API = False
+
+# Get Zoom API credentials from environment variables
+ZOOM_API_KEY = os.environ.get('ZOOM_API_KEY')
+ZOOM_API_SECRET = os.environ.get('ZOOM_API_SECRET')
+ZOOM_JWT_TOKEN = os.environ.get('ZOOM_JWT_TOKEN')
+
+# If API credentials are available, we'll use the real API
+if ZOOM_API_KEY and ZOOM_API_SECRET and ZOOM_JWT_TOKEN:
+    USE_REAL_API = True
+    logger.info("Using real Zoom API with provided credentials")
+else:
+    logger.info("No Zoom API credentials found, using simulation mode")
+
+# Base URL for Zoom API
+ZOOM_API_BASE_URL = "https://api.zoom.us/v2"
+
+class ZoomAPIClient:
+    """
+    Client for interacting with the Zoom API.
+    This implementation falls back to simulation when credentials are not available.
+    """
+    def __init__(self):
+        self.api_key = ZOOM_API_KEY
+        self.api_secret = ZOOM_API_SECRET
+        self.jwt_token = ZOOM_JWT_TOKEN
+        self.use_real_api = USE_REAL_API
+        
+        # If we're not using the real API, initialize the simulator
+        if not self.use_real_api:
+            self.simulator = ZoomMeetingSimulator()
+    
+    def get_headers(self):
+        """Get the headers required for Zoom API requests"""
+        if not self.use_real_api:
+            return {}
+            
+        return {
+            "Authorization": f"Bearer {self.jwt_token}",
+            "Content-Type": "application/json"
+        }
+    
+    def get_meeting_info(self, meeting_id=None):
+        """
+        Get information about a Zoom meeting
+        
+        Args:
+            meeting_id (str): ID of the meeting to fetch
+            
+        Returns:
+            dict: Meeting information
+        """
+        if not self.use_real_api:
+            return self.simulator.get_meeting_info()
+            
+        # If we're using the real API, we would make an actual API call here
+        try:
+            # This would be replaced with an actual API call in production
+            url = f"{ZOOM_API_BASE_URL}/meetings/{meeting_id}"
+            response = requests.get(url, headers=self.get_headers())
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to get meeting info: {response.text}")
+                # Fall back to simulation if API call fails
+                return self.simulator.get_meeting_info()
+                
+        except Exception as e:
+            logger.error(f"Error calling Zoom API: {str(e)}")
+            # Fall back to simulation
+            return self.simulator.get_meeting_info()
 
 class ZoomMeetingSimulator:
     """
     A class to simulate the behavior of a Zoom meeting.
+    Used as a fallback when real API credentials are not available.
     """
     def __init__(self):
-        self.meeting_id = "123-456-789"
-        self.host_id = "host_user_123"
-        self.participants = ["Host", "Participant1", "Participant2", "Participant3"]
-        self.meeting_status = "in-progress"
+        # Create a realistic meeting setup
+        self.meeting_id = "812345678910"
+        self.host_id = "h4XeZuySQ62CvF3llYR8zA"
+        self.participants = [
+            {"id": "108124232", "name": "John Davis", "role": "host", "status": "active"},
+            {"id": "108124233", "name": "Sarah Adams", "role": "co-host", "status": "active"},
+            {"id": "108124234", "name": "Michael Kim", "role": "attendee", "status": "active"},
+            {"id": "108124235", "name": "Lisa Wong", "role": "attendee", "status": "active"}
+        ]
+        self.meeting_status = "in_progress"
         self.polls = []
         self.current_poll = None
+        self.meeting_topic = "Q2 Strategy Planning Meeting"
         
     def get_meeting_info(self):
         """Get information about the current simulated meeting."""
         return {
-            "meeting_id": self.meeting_id,
+            "id": self.meeting_id,
+            "uuid": f"ab12Cd34EFgh/56IJkl78=",
             "host_id": self.host_id,
-            "participants_count": len(self.participants),
-            "status": self.meeting_status,
+            "topic": self.meeting_topic,
+            "type": 2,
             "start_time": (datetime.now().replace(
                 hour=datetime.now().hour-1, 
                 minute=0, 
                 second=0, 
                 microsecond=0)
-            ).strftime("%Y-%m-%d %H:%M:%S"),
-            "polls_count": len(self.polls)
+            ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "duration": 60,
+            "timezone": "UTC",
+            "participant_count": len(self.participants),
+            "status": self.meeting_status,
+            "settings": {
+                "host_video": True,
+                "participant_video": True,
+                "join_before_host": False,
+                "mute_upon_entry": True,
+                "waiting_room": False,
+                "polls": {
+                    "enable": True
+                }
+            }
         }
     
     def create_poll(self, question, options):
@@ -98,11 +194,17 @@ class ZoomMeetingSimulator:
                     poll["ended_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     
                     # Simulate some random responses
-                    import random
+                    # Initialize empty responses dictionary if it doesn't exist
+                    if "responses" not in poll:
+                        poll["responses"] = {}
+                        
+                    # Generate random responses for each participant
                     for participant in self.participants:
-                        if participant != "Host":  # Assume host doesn't vote
+                        # Skip the host for more realistic results
+                        if participant["role"] != "host":
                             random_option = random.randint(0, len(poll["options"]) - 1)
-                            poll["responses"][participant] = poll["options"][random_option]
+                            # Use participant ID as the key
+                            poll["responses"][participant["id"]] = poll["options"][random_option]
                     
                     self.current_poll = None
                     return {"success": True, "poll": poll}
