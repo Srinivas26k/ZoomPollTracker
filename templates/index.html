@@ -92,40 +92,76 @@
         <div class="zoom-ui mb-4">
             <div class="zoom-header">
                 <div class="d-flex align-items-center">
-                    <h2 class="h5 mb-0">
+                    <h2 id="meeting-topic" class="h5 mb-0">
                         <i class="fas fa-users me-2 text-primary"></i>
-                        Q2 Strategy Planning Meeting
+                        {% if meeting %}
+                            {{ meeting.topic }}
+                        {% else %}
+                            Current Meeting
+                        {% endif %}
                     </h2>
                     <div class="live-indicator ms-2">LIVE</div>
                 </div>
-                <div class="zoom-controls">
-                    <div class="zoom-control-button" title="Mute/Unmute">
-                        <i class="fas fa-microphone"></i>
+                <div class="d-flex align-items-center">
+                    <div class="text-light me-3">
+                        <small class="d-flex align-items-center">
+                            <i class="fas fa-stopwatch me-1"></i>
+                            Duration: <span id="meeting-duration" class="ms-1">0 min</span>
+                        </small>
                     </div>
-                    <div class="zoom-control-button" title="Start/Stop Video">
-                        <i class="fas fa-video"></i>
-                    </div>
-                    <div class="zoom-control-button" title="Share Screen">
-                        <i class="fas fa-desktop"></i>
-                    </div>
-                    <div class="zoom-control-button" title="Participants">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="zoom-control-button" title="More">
-                        <i class="fas fa-ellipsis-h"></i>
+                    <div class="zoom-controls">
+                        <div class="zoom-control-button" title="Mute/Unmute">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                        <div class="zoom-control-button" title="Start/Stop Video">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div class="zoom-control-button" title="Share Screen">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <div class="zoom-control-button" title="Polls" id="poll-analytics-btn">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="zoom-control-button" title="Export Data" id="export-data-btn">
+                            <i class="fas fa-download"></i>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="zoom-participants">
-                <h3 class="h6 mb-3 d-flex align-items-center">
-                    <i class="fas fa-user-friends me-2"></i>
-                    Participants (4)
+                <h3 class="h6 mb-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-user-friends me-2"></i>
+                        Participants (<span id="participants-count">
+                            {% if meeting and meeting.participants_count %}
+                                {{ meeting.participants_count }}
+                            {% else %}
+                                4
+                            {% endif %}
+                        </span>)
+                    </div>
+                    <div class="small text-primary d-flex align-items-center">
+                        <i class="fas fa-id-badge me-1"></i>
+                        Meeting ID: <span id="meeting-id" class="ms-1 fw-medium" data-meeting-id="{{ meeting.id if meeting else '123456789' }}">
+                            {% if meeting %}
+                                {{ meeting.id }}
+                            {% else %}
+                                123-456-789
+                            {% endif %}
+                        </span>
+                    </div>
                 </h3>
                 <div class="participant host">
                     <div class="participant-avatar">JD</div>
                     <div class="participant-info">
-                        <div class="participant-name">John Davis (You)</div>
+                        <div class="participant-name">
+                            {% if meeting and meeting.host %}
+                                {{ meeting.host.name }} (You)
+                            {% else %}
+                                John Davis (You)
+                            {% endif %}
+                        </div>
                         <div class="participant-status">Host | Unmuted</div>
                     </div>
                 </div>
@@ -221,9 +257,34 @@
     </div>
 </div>
 
-<!-- System Information -->
+<!-- Poll History & Analytics -->
 <div class="row mt-4">
-    <div class="col-12">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h3 class="h5 mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Polls
+                </h3>
+                <div class="small">Session History</div>
+            </div>
+            <div class="card-body p-0">
+                <div id="polls-history-list" class="polls-history">
+                    <!-- Poll history will be loaded here dynamically -->
+                    <div class="text-center p-4 text-muted">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <p>No poll history available yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Poll Analytics -->
+        <div id="poll-stats" class="mb-4" style="display:none;"></div>
+        
+        <!-- System Information -->
         <div class="card border-0 shadow">
             <div class="card-header bg-primary text-white">
                 <h3 class="h5 mb-0 d-flex align-items-center">
@@ -261,6 +322,15 @@
                         </p>
                     </div>
                 </div>
+                
+                {% if simulation_mode %}
+                <div class="alert alert-info mt-4 mb-0 d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-lg me-3"></i>
+                    <div>
+                        <strong>Simulation Mode Active:</strong> This application is currently running with simulated Zoom data. For real Zoom integration, you'll need to provide Zoom API credentials.
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

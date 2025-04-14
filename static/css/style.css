@@ -311,3 +311,105 @@
     padding: 15px;
     font-weight: 500;
 }
+
+/* Poll history styling */
+.polls-history {
+    max-height: 620px;
+    overflow-y: auto;
+}
+
+.polls-history::-webkit-scrollbar {
+    width: 4px;
+}
+
+.polls-history::-webkit-scrollbar-track {
+    background: var(--zoom-grey);
+}
+
+.polls-history::-webkit-scrollbar-thumb {
+    background: var(--zoom-blue-light);
+    border-radius: 10px;
+}
+
+.poll-history-item {
+    padding: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.poll-history-item:hover {
+    background-color: rgba(45, 140, 255, 0.05);
+}
+
+.poll-history-item:last-child {
+    border-bottom: none;
+}
+
+/* Poll analytics styling */
+#poll-stats {
+    position: relative;
+    animation-duration: 0.3s;
+}
+
+.fade-in {
+    animation-name: fadeIn;
+}
+
+.fade-out {
+    animation-name: fadeOut;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+}
+
+/* Simulation mode indicator */
+.simulation-badge {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+.simulation-badge i {
+    margin-right: 5px;
+}
+
+/* Local storage status */
+.storage-info {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(9, 86, 181, 0.1);
+    color: var(--zoom-blue);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    z-index: 900;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.storage-info:hover {
+    opacity: 1;
+}
+
+.storage-info i {
+    margin-right: 5px;
+}
