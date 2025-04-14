@@ -124,14 +124,36 @@ def main_page():
                            last_poll_time=last_poll_time,
                            time_until_next=time_until_next_poll,
                            poll_interval=poll_interval,
-                           meeting=connected_meeting or get_default_meeting(),
+                           meeting=connected_meeting,
                            simulation_mode=session.get('simulation_mode', False))
 
 @app.route('/connect')
 def connect():
     """Render the connection page to link with a Zoom meeting."""
     # Get list of recent meetings (simulated in this case)
-    recent_meetings = get_recent_meetings()
+    recent_meetings = [
+        {
+            "id": "812345678910",
+            "topic": "Q2 Strategy Planning Meeting",
+            "status": "in_progress",
+            "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "participants_count": 4
+        },
+        {
+            "id": "912345678911",
+            "topic": "Product Development Roadmap",
+            "status": "scheduled",
+            "start_time": (datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S"),
+            "participants_count": 0
+        },
+        {
+            "id": "812345678912",
+            "topic": "Team Onboarding Session",
+            "status": "in_progress",
+            "start_time": (datetime.now() - timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
+            "participants_count": 6
+        }
+    ]
     
     return render_template('connect.html', 
                            recent_meetings=recent_meetings,
@@ -177,9 +199,20 @@ def simulate_meeting():
     # Set simulation mode flag in session
     session['simulation_mode'] = True
     
-    # Get default simulated meeting
+    # Create default simulated meeting
     global connected_meeting
-    connected_meeting = get_default_meeting()
+    meeting_info = get_zoom_meeting_info()
+    connected_meeting = {
+        "id": meeting_info["id"],
+        "topic": meeting_info["topic"],
+        "status": meeting_info["status"],
+        "start_time": meeting_info["start_time"],
+        "host": {
+            "name": "John Davis",
+            "id": "user123"
+        },
+        "participants_count": meeting_info.get("participant_count", 4)
+    }
     
     flash('Simulation mode activated', 'info')
     return redirect(url_for('main_page'))
