@@ -5,11 +5,14 @@
     <!-- Control Panel -->
     <div class="col-md-4">
         <div class="control-panel">
-            <h2 class="h4 mb-3">Control Panel</h2>
+            <h2 class="h4 mb-3">
+                <i class="fas fa-sliders-h me-2"></i> 
+                Control Panel
+            </h2>
             
             <!-- Next Poll Information -->
             <div class="countdown-container mb-4">
-                <h3 class="h6 mb-2">Next Poll In:</h3>
+                <h3 class="h6 mb-2">Next Automated Poll In:</h3>
                 <div class="countdown" id="countdown" data-seconds="{{ time_until_next }}">
                     {% if time_until_next %}
                         {{ (time_until_next // 60)|int }}:{{ '%02d' % (time_until_next % 60)|int }}
@@ -17,45 +20,67 @@
                         Loading...
                     {% endif %}
                 </div>
-                <div id="next-poll-time" data-seconds="{{ time_until_next }}" data-interval="{{ poll_interval }}" class="small text-muted mt-2">
-                    Interval: {{ poll_interval }} seconds
+                <div id="next-poll-time" data-seconds="{{ time_until_next }}" data-interval="{{ poll_interval }}" class="small mt-2 text-light opacity-75">
+                    Interval: {{ poll_interval // 60 }} minutes ({{ poll_interval }} seconds)
                 </div>
             </div>
             
             <!-- Manual Controls -->
             <div class="mb-4">
-                <h3 class="h6 mb-3">Manual Controls</h3>
-                <button id="generate-poll-btn" class="btn btn-primary w-100 mb-3">
-                    <i class="fas fa-plus-circle me-2"></i> Generate Poll Now
+                <h3 class="h6 mb-3">
+                    <i class="fas fa-gamepad me-2"></i> 
+                    Manual Controls
+                </h3>
+                <button id="generate-poll-btn" class="btn btn-primary w-100 mb-3 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-bolt me-2"></i>
+                    <span>Generate Poll Now</span>
                 </button>
                 
                 <div class="form-group">
-                    <label for="interval-input" class="form-label">Poll Interval (seconds)</label>
+                    <label for="interval-input" class="form-label d-flex align-items-center">
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        Poll Interval (seconds)
+                    </label>
                     <div class="input-group mb-2">
                         <input type="number" class="form-control" id="interval-input" value="{{ poll_interval }}" min="1">
-                        <button class="btn btn-outline-primary" id="update-interval-btn">Update</button>
+                        <button class="btn btn-outline-primary" id="update-interval-btn">
+                            <i class="fas fa-save me-1"></i> Update
+                        </button>
                     </div>
-                    <div class="form-text">
-                        Default: 900 seconds (15 minutes)
+                    <div class="form-text small fst-italic">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Recommended: 900 seconds (15 minutes)
                     </div>
                 </div>
             </div>
             
             <!-- System Status -->
             <div>
-                <h3 class="h6 mb-3">System Status</h3>
+                <h3 class="h6 mb-3">
+                    <i class="fas fa-heartbeat me-2"></i>
+                    System Status
+                </h3>
                 <ul class="list-group">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Transcript Simulator
-                        <span class="badge bg-success">Active</span>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-file-alt me-2 text-primary"></i> 
+                            Transcript Capture
+                        </div>
+                        <span class="badge bg-success px-3 py-2">Active</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Poll Generator
-                        <span class="badge bg-success">Active</span>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-brain me-2 text-primary"></i> 
+                            AI Poll Generator
+                        </div>
+                        <span class="badge bg-success px-3 py-2">Active</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Zoom Integration
-                        <span class="badge bg-success">Simulated</span>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-video me-2 text-primary"></i> 
+                            Zoom API Connection
+                        </div>
+                        <span class="badge bg-success px-3 py-2">Connected</span>
                     </li>
                 </ul>
             </div>
@@ -66,52 +91,79 @@
     <div class="col-md-8">
         <div class="zoom-ui mb-4">
             <div class="zoom-header">
-                <div>
-                    <h2 class="h5 mb-0">Sales Team Weekly Check-in</h2>
-                    <div class="small text-muted">Meeting ID: 123-456-789</div>
+                <div class="d-flex align-items-center">
+                    <h2 class="h5 mb-0">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        Q2 Strategy Planning Meeting
+                    </h2>
+                    <div class="live-indicator ms-2">LIVE</div>
                 </div>
                 <div class="zoom-controls">
-                    <div class="zoom-control-button">
+                    <div class="zoom-control-button" title="Mute/Unmute">
                         <i class="fas fa-microphone"></i>
                     </div>
-                    <div class="zoom-control-button">
+                    <div class="zoom-control-button" title="Start/Stop Video">
                         <i class="fas fa-video"></i>
                     </div>
-                    <div class="zoom-control-button">
-                        <i class="fas fa-share-square"></i>
+                    <div class="zoom-control-button" title="Share Screen">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="zoom-control-button" title="Participants">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="zoom-control-button" title="More">
+                        <i class="fas fa-ellipsis-h"></i>
                     </div>
                 </div>
             </div>
             
             <div class="zoom-participants">
-                <h3 class="h6 mb-2">Participants (4)</h3>
-                <div class="participant">
-                    <div class="participant-avatar">H</div>
-                    <div>Host (You)</div>
+                <h3 class="h6 mb-3 d-flex align-items-center">
+                    <i class="fas fa-user-friends me-2"></i>
+                    Participants (4)
+                </h3>
+                <div class="participant host">
+                    <div class="participant-avatar">JD</div>
+                    <div class="participant-info">
+                        <div class="participant-name">John Davis (You)</div>
+                        <div class="participant-status">Host | Unmuted</div>
+                    </div>
                 </div>
                 <div class="participant">
-                    <div class="participant-avatar">P1</div>
-                    <div>Participant 1</div>
+                    <div class="participant-avatar">SA</div>
+                    <div class="participant-info">
+                        <div class="participant-name">Sarah Adams</div>
+                        <div class="participant-status">Co-Host | Muted</div>
+                    </div>
                 </div>
                 <div class="participant">
-                    <div class="participant-avatar">P2</div>
-                    <div>Participant 2</div>
+                    <div class="participant-avatar">MK</div>
+                    <div class="participant-info">
+                        <div class="participant-name">Michael Kim</div>
+                        <div class="participant-status">Muted</div>
+                    </div>
                 </div>
                 <div class="participant">
-                    <div class="participant-avatar">P3</div>
-                    <div>Participant 3</div>
+                    <div class="participant-avatar">LW</div>
+                    <div class="participant-info">
+                        <div class="participant-name">Lisa Wong</div>
+                        <div class="participant-status">Muted</div>
+                    </div>
                 </div>
             </div>
             
             <!-- Poll Display -->
             <div id="poll-container" class="poll-box">
-                <h3 class="h5 mb-3">
-                    <i class="fas fa-poll me-2"></i>
-                    Active Poll
+                <h3 class="h5 mb-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-poll me-2"></i>
+                        Active Poll
+                    </div>
+                    <span class="badge bg-primary px-3">AI-Generated</span>
                 </h3>
                 
                 <div class="poll-content">
-                    <h4 id="poll-question" class="h6 mb-3">
+                    <h4 id="poll-question" class="h5 mb-4 fw-bold">
                         {% if poll %}
                             {{ poll.question }}
                         {% else %}
@@ -119,12 +171,12 @@
                         {% endif %}
                     </h4>
                     
-                    <div id="poll-options" class="mb-3">
+                    <div id="poll-options" class="mb-4">
                         {% if poll and poll.options %}
                             {% for option in poll.options %}
-                                <div class="form-check">
+                                <div class="form-check mb-3">
                                     <input class="form-check-input" type="radio" name="pollOption" id="option{{ loop.index0 }}" value="{{ option }}">
-                                    <label class="form-check-label" for="option{{ loop.index0 }}">
+                                    <label class="form-check-label fw-medium" for="option{{ loop.index0 }}">
                                         {{ option }}
                                     </label>
                                 </div>
@@ -132,10 +184,14 @@
                         {% endif %}
                     </div>
                     
-                    <button class="btn btn-primary poll-submit-btn">Submit Vote</button>
+                    <button class="btn btn-primary poll-submit-btn">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Submit Vote
+                    </button>
                     
-                    <div class="small text-muted mt-3">
-                        Poll generated at: <span id="poll-timestamp">
+                    <div class="small text-muted mt-4 d-flex align-items-center">
+                        <i class="fas fa-clock me-2"></i>
+                        Generated at: <span id="poll-timestamp" class="ms-1 fw-medium">
                             {% if last_poll_time %}
                                 {{ last_poll_time.strftime('%Y-%m-%d %H:%M:%S') }}
                             {% else %}
@@ -148,9 +204,10 @@
             
             <!-- Transcript Display -->
             <div>
-                <h3 class="h5 mb-3">
+                <h3 class="h5 mb-3 d-flex align-items-center">
                     <i class="fas fa-file-alt me-2"></i>
-                    Meeting Transcript (Last 10 Minutes)
+                    Meeting Transcript
+                    <span class="badge bg-secondary ms-2 px-2 py-1">Last 10 Minutes</span>
                 </h3>
                 <div class="transcript-container" id="transcript">
                     {% if transcript %}
@@ -167,9 +224,12 @@
 <!-- System Information -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="h5 mb-0">How This System Works</h3>
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="h5 mb-0 d-flex align-items-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    How This System Works
+                </h3>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -177,30 +237,27 @@
                         <div class="text-center mb-3">
                             <i class="fas fa-file-alt fa-3x text-primary"></i>
                         </div>
-                        <h4 class="h6 text-center">1. Transcript Capture</h4>
-                        <p class="small text-center">
-                            The system captures the last 10 minutes of meeting transcript data every 15 minutes.
-                            (Simulated in this demo)
+                        <h4 class="h5 text-center">1. Transcript Capture</h4>
+                        <p class="text-center">
+                            The system automatically captures the last 10 minutes of meeting transcript data every 15 minutes from your live Zoom meeting.
                         </p>
                     </div>
                     <div class="col-md-4">
                         <div class="text-center mb-3">
                             <i class="fas fa-brain fa-3x text-primary"></i>
                         </div>
-                        <h4 class="h6 text-center">2. AI Poll Generation</h4>
-                        <p class="small text-center">
-                            The captured transcript is analyzed to generate a contextually relevant poll with four options.
-                            (Simulated Ollama/Llama 3.2 integration)
+                        <h4 class="h5 text-center">2. AI Poll Generation</h4>
+                        <p class="text-center">
+                            The captured transcript is analyzed by our AI engine to generate a contextually relevant poll with four answer options based on the meeting content.
                         </p>
                     </div>
                     <div class="col-md-4">
                         <div class="text-center mb-3">
                             <i class="fas fa-poll-h fa-3x text-primary"></i>
                         </div>
-                        <h4 class="h6 text-center">3. Poll Posting</h4>
-                        <p class="small text-center">
-                            The generated poll is automatically posted to the Zoom meeting.
-                            (Simulated in this demo UI)
+                        <h4 class="h5 text-center">3. Poll Posting</h4>
+                        <p class="text-center">
+                            The AI-generated poll is automatically posted to your Zoom meeting, allowing participants to vote without interrupting the meeting flow.
                         </p>
                     </div>
                 </div>

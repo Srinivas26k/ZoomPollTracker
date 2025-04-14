@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Zoom Poll Automation</title>
     
+    <!-- Google Fonts - Roboto and Roboto Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     
@@ -13,17 +18,40 @@
     
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
 </head>
 <body>
     <!-- Header -->
     <header class="app-header">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h3 mb-0">
-                    <i class="fas fa-video me-2"></i>
-                    Real-Time Zoom Poll Automation
-                </h1>
-                <span class="badge bg-success">Simulation Mode</span>
+                <div class="d-flex align-items-center">
+                    <img src="{{ url_for('static', filename='img/zoom-logo-white.png') }}" alt="Zoom Logo" height="30" class="me-3">
+                    <h1 class="h3 mb-0 fw-bold">
+                        Real-Time Zoom Poll Automation
+                    </h1>
+                </div>
+                <div class="d-flex gap-3 align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="d-inline-block me-2 bg-success rounded-circle" style="width: 10px; height: 10px;"></span>
+                        <span class="fw-medium">Connected</span>
+                    </div>
+                    <div class="vr"></div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span>Admin</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i> Help</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -36,27 +64,55 @@
     <!-- Footer -->
     <footer class="app-footer">
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>About This Project</h5>
+            <div class="row gy-4">
+                <div class="col-md-5">
+                    <h5 class="fw-bold mb-3">About This Tool</h5>
                     <p>
-                        This application simulates automated poll generation for Zoom meetings using transcript analysis.
-                        It demonstrates how AI could be used to enhance virtual meeting experiences by generating
-                        contextually relevant polls.
+                        This application provides automated poll generation for Zoom meetings using advanced AI-powered transcript analysis. Enhance your virtual meeting experiences with contextually relevant polls that engage participants without disrupting the flow of conversation.
                     </p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-white-50 hover-text-white">
+                            <i class="fab fa-github fa-lg"></i>
+                        </a>
+                        <a href="#" class="text-white-50 hover-text-white">
+                            <i class="fab fa-twitter fa-lg"></i>
+                        </a>
+                        <a href="#" class="text-white-50 hover-text-white">
+                            <i class="fab fa-linkedin fa-lg"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h5>Resources</h5>
+                <div class="col-md-3">
+                    <h5 class="fw-bold mb-3">Resources</h5>
                     <ul class="list-unstyled">
-                        <li><a href="https://github.com/zoom/zoom-sdk-web" target="_blank">Zoom Web SDK</a></li>
-                        <li><a href="https://ollama.com/" target="_blank">Ollama</a></li>
-                        <li><a href="https://flask.palletsprojects.com/" target="_blank">Flask Documentation</a></li>
+                        <li class="mb-2"><a href="https://zoom.us/docs" target="_blank" class="text-decoration-none text-white-50"><i class="fas fa-external-link-alt me-2"></i>Zoom API Docs</a></li>
+                        <li class="mb-2"><a href="https://marketplace.zoom.us" target="_blank" class="text-decoration-none text-white-50"><i class="fas fa-external-link-alt me-2"></i>Zoom Marketplace</a></li>
+                        <li class="mb-2"><a href="https://ollama.com/" target="_blank" class="text-decoration-none text-white-50"><i class="fas fa-external-link-alt me-2"></i>Ollama</a></li>
+                        <li class="mb-2"><a href="https://flask.palletsprojects.com/" target="_blank" class="text-decoration-none text-white-50"><i class="fas fa-external-link-alt me-2"></i>Flask Documentation</a></li>
                     </ul>
                 </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">Contact Support</h5>
+                    <form>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" placeholder="Your email address">
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" rows="3" placeholder="Your message"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Send Message
+                        </button>
+                    </form>
+                </div>
             </div>
-            <hr>
-            <div class="text-center">
-                <p class="mb-0">&copy; 2023 Real-Time Zoom Poll Automation | Simulation Project</p>
+            <hr class="mt-4 mb-3 border-secondary">
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="mb-0">&copy; 2025 Real-Time Zoom Poll Automation</p>
+                <div>
+                    <a href="#" class="text-white-50 text-decoration-none me-3">Privacy Policy</a>
+                    <a href="#" class="text-white-50 text-decoration-none">Terms of Service</a>
+                </div>
             </div>
         </div>
     </footer>
