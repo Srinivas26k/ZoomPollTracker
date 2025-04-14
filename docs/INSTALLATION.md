@@ -29,7 +29,7 @@ The application requires the following Python packages:
 ### Step 1: Clone or Download the Repository
 
 ```
-git clone https://github.com/yourusername/zoom-poll-automation.git
+git clone [https://github.com/yourusername/zoom-poll-automation.git](https://github.com/Srinivas26k/ZoomPollTracker.git)
 cd zoom-poll-automation
 ```
 
